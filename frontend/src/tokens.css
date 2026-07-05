@@ -1,0 +1,91 @@
+/* ── Design Tokens ──────────────────────────────────────────────────── */
+:root {
+  /* Base */
+  --bg: #0b0f1a;
+  --bg-elevated: #131a2a;
+  --bg-elevated-2: #1b2438;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Text */
+  --text-primary: #edeff4;
+  --text-muted: #8892a6;
+  --text-faint: #545e73;
+
+  /* Accents */
+  --amber: #e8a33d;
+  --amber-dim: rgba(232, 163, 61, 0.14);
+  --teal: #3fbfb0;
+  --teal-dim: rgba(63, 191, 176, 0.14);
+  --coral: #e2685a;
+  --coral-dim: rgba(226, 104, 90, 0.14);
+  --blue: #5b8def;
+  --blue-dim: rgba(91, 141, 239, 0.14);
+  --violet: #8d85c7;
+  --violet-dim: rgba(141, 133, 199, 0.14);
+  --green: #4ade80;
+
+  /* Type */
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Subtle background texture: faint scanning grid, evokes a radar/signal
+   console without being loud about it */
+body {
+  background-image: radial-gradient(
+    circle at 50% 0%,
+    rgba(63, 191, 176, 0.06),
+    transparent 60%
+  );
+  background-attachment: fixed;
+}
+
+::selection {
+  background: var(--amber-dim);
+  color: var(--text-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
