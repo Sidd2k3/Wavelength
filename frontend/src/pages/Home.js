@@ -82,7 +82,7 @@ export default function Home() {
       </main>
 
       <footer className="footer">
-        Signals expire automatically after 6 months to keep the board current.
+        Signals expire automatically after 3 months to keep the board current.
       </footer>
     </div>
   );
