@@ -75,7 +75,7 @@ async function fetchTweets() {
     for (const keyword of KEYWORDS) {
         try {
             console.log(`🔍 Searching: "${keyword}"`);
-            const result = await rettiwt.tweet.search({ includePhrase: keyword, startDate: new Date(Date.now() - 7*24*60*60*1000) }, 20);
+            const result = await rettiwt.tweet.search({ includePhrase: keyword, language: "en", startDate: new Date(Date.now() - 7*24*60*60*1000) }, 20);
 
             if (result?.list?.length) {
                 for (const tweet of result.list) {
