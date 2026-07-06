@@ -1,0 +1,63 @@
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+/bin/bash: line 0: exec: uvicorn: not found
+INFO:     Started server process [45418]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [45418]
+INFO:     Started server process [836]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+Job "run_scheduled_fetch (trigger: interval[0:30:00], next run at: 2026-07-06 09:02:07 IST)" raised an exception
+Traceback (most recent call last):
+  File "/Users/siddharth/Library/Python/3.9/lib/python/site-packages/apscheduler/executors/base.py", line 125, in run_job
+    retval = job.func(*job.args, **job.kwargs)
+  File "/Users/siddharth/Wavelength/backend/main.py", line 124, in run_scheduled_fetch
+    log_scrape(
+  File "/Users/siddharth/Wavelength/backend/database.py", line 141, in log_scrape
+    conn = get_connection(); cur = conn.cursor()
+  File "/Users/siddharth/Wavelength/backend/database.py", line 11, in get_connection
+    return psycopg2.connect(DATABASE_URL)
+  File "/Users/siddharth/Library/Python/3.9/lib/python/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "aws-1-ap-southeast-1.pooler.supabase.com" to address: nodename nor servname provided, or not known
+
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [836]
+INFO:     Started server process [867]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [867]
+INFO:     Started server process [1326]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1326]
+INFO:     Started server process [1396]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)

@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(__file__)
 FETCHER_DIR = os.path.join(BASE_DIR, "fetcher")
 RAW_TWEETS_PATH = os.path.join(FETCHER_DIR, "raw_tweets.csv")
 
-MAX_AGE_DAYS = 180        # ~6 months — tweets older than this are hidden, then cleaned up
+MAX_AGE_DAYS = 90        # ~6 months — tweets older than this are hidden, then cleaned up
 FETCH_INTERVAL_MINUTES = 30  # how often the fetcher automatically runs
 
 scheduler = AsyncIOScheduler()
