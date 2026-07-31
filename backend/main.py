@@ -182,7 +182,7 @@ def root():
     return {"message": "Twitter Lead Intelligence API is running 🚀"}
 
 
-@app.get("/api/health")
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok"}
 
