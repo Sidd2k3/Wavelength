@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
-const client = axios.create({ baseURL: API_BASE, timeout: 10000 });
+const client = axios.create({ baseURL: API_BASE, timeout: 60000 });
 
 export const CATEGORIES = [
   {
@@ -59,3 +59,27 @@ export async function fetchTweets({ category, page = 1, limit = 20 } = {}) {
 }
 
 export default client;
+
+// --- Auto-retry for cold starts (Render free tier takes ~30-60s to wake) ---
+const MAX_RETRIES = 2;
+
+client.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const config = error.config;
+    if (!config) return Promise.reject(error);
+
+    const status = error.response ? error.response.status : null;
+    const worthRetrying = !status || status >= 500 || status === 408 || status === 429;
+
+    config.__retryCount = config.__retryCount || 0;
+
+    if (!worthRetrying || config.__retryCount >= MAX_RETRIES) {
+      return Promise.reject(error);
+    }
+
+    config.__retryCount += 1;
+    await new Promise((r) => setTimeout(r, 2000 * config.__retryCount));
+    return client(config);
+  }
+);

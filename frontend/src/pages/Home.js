@@ -20,7 +20,7 @@ export default function Home() {
       setRecentTweets(tweetsData.tweets || []);
       setError(null);
     } catch (e) {
-      setError("Can't reach the backend. Make sure it's running on localhost:8000.");
+      setError("Couldn't load signals right now. The server may be waking up — please refresh in a moment.");
     } finally {
       setLoading(false);
     }
