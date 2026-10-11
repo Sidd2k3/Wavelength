@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "rettiwt-api": "^7.1.2"
+    "rettiwt-api": "^7.1.4"
   }
 }
