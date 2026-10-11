@@ -1,4 +1,5 @@
 import os
+import html
 from datetime import datetime
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
@@ -50,15 +51,28 @@ def init_db():
     conn.commit(); conn.close()
     print(f"Database initialized ({'Supabase/Postgres' if USE_PG else 'local SQLite'})")
 
+def clean_text(text):
+    """Decode HTML entities Twitter sends (&amp;amp; -> &); two passes for double escapes."""
+    if not text:
+        return text
+    return html.unescape(html.unescape(text))
+
 def insert_tweet(tweet):
+    """Insert one classified tweet. Skips exact repeats (same tweet_id) and
+    re-posts of the same text by the same author under a new tweet_id."""
+    text = clean_text(tweet.get("text"))
     conn = get_connection(); cur = conn.cursor()
     try:
+        cur.execute(f"SELECT 1 FROM tweets WHERE LOWER(username) = LOWER({PH}) AND text = {PH} LIMIT 1",
+                    (tweet.get("username") or "", text))
+        if cur.fetchone():
+            return False
         cur.execute(f"""INSERT INTO tweets (tweet_id, profile_name, username, text, label,
             label_name, confidence, lead_score, created_at)
             VALUES ({PH},{PH},{PH},{PH},{PH},{PH},{PH},{PH},{PH})""" +
             (" ON CONFLICT (tweet_id) DO NOTHING" if USE_PG else ""),
-            (tweet.get("tweet_id"), tweet.get("profile_name"), tweet.get("username"),
-             tweet.get("text"), tweet.get("label"), tweet.get("label_name"),
+            (tweet.get("tweet_id"), clean_text(tweet.get("profile_name")), tweet.get("username"),
+             text, tweet.get("label"), tweet.get("label_name"),
              tweet.get("confidence"), tweet.get("lead_score"),
              tweet.get("created_at", datetime.now().isoformat())))
         new = cur.rowcount > 0
@@ -73,7 +87,7 @@ def _age_cond(col="created_at"):
         return f"{col} >= (NOW() - (%s || ' days')::interval)::text", None
     return f"{col} >= datetime('now', ?)", None
 
-def get_tweets(limit=50, offset=0, label_name=None, only_relevant=True, max_age_days=90):
+def get_tweets(limit=50, offset=0, label_name=None, only_relevant=True, max_age_days=90, sort="score"):
     conn = get_connection(); cur = _dict_cursor(conn)
     conds, params = [], []
     if only_relevant: conds.append("label != 0")
@@ -85,7 +99,11 @@ def get_tweets(limit=50, offset=0, label_name=None, only_relevant=True, max_age_
         else:
             conds.append("created_at >= datetime('now', ?)"); params.append(f"-{max_age_days} days")
     where = f"WHERE {' AND '.join(conds)}" if conds else ""
-    cur.execute(f"SELECT * FROM tweets {where} ORDER BY lead_score DESC, scraped_at DESC LIMIT {PH} OFFSET {PH}",
+    if sort == "recent":
+        order = "created_at::timestamptz DESC" if USE_PG else "datetime(created_at) DESC"
+    else:
+        order = "lead_score DESC, scraped_at DESC"
+    cur.execute(f"SELECT * FROM tweets {where} ORDER BY {order} LIMIT {PH} OFFSET {PH}",
                 params + [limit, offset])
     rows = cur.fetchall(); conn.close()
     results = []

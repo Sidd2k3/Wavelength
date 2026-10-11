@@ -192,11 +192,12 @@ def fetch_tweets(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     category: str = Query(None, description="Filter by label_name e.g. 'hiring'"),
+    sort: str = Query("score", pattern="^(score|recent)$"),
 ):
     """Returns only the 5 business-relevant categories.
     Irrelevant tweets (label=0) are never returned here."""
     offset = (page - 1) * limit
-    tweets = get_tweets(limit=limit, offset=offset, label_name=category, only_relevant=True)
+    tweets = get_tweets(limit=limit, offset=offset, label_name=category, only_relevant=True, sort=sort)
     total = get_total_count(label_name=category, only_relevant=True)
     return {
         "tweets": tweets,

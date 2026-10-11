@@ -51,11 +51,47 @@ export async function fetchStats() {
   return res.data;
 }
 
-export async function fetchTweets({ category, page = 1, limit = 20 } = {}) {
-  const params = { page, limit };
+const NAMED_ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\u00a0" };
+
+// Twitter returns HTML-escaped text ("&amp;"); decode it for display.
+export function decodeEntities(str) {
+  if (!str) return "";
+  let out = str;
+  for (let i = 0; i < 2; i++) {
+    // two passes handle double-escaped text such as "&amp;amp;"
+    out = out.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) => {
+      if (e[0] === "#") {
+        const code = e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : m;
+      }
+      const v = NAMED_ENTITIES[e.toLowerCase()];
+      return v !== undefined ? v : m;
+    });
+  }
+  return out;
+}
+
+// The same post can be stored under several tweet IDs (reposts, quote
+// re-shares). Keep the first occurrence of each author + text pair.
+export function dedupeTweets(list) {
+  const seen = new Set();
+  const out = [];
+  for (const t of list) {
+    const text = decodeEntities(t.text);
+    const key = `${(t.username || "").toLowerCase()}|${text.replace(/\s+/g, " ").trim().toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ ...t, text, profile_name: decodeEntities(t.profile_name) });
+  }
+  return out;
+}
+
+export async function fetchTweets({ category, page = 1, limit = 20, sort = "score" } = {}) {
+  const params = { page, limit, sort };
   if (category) params.category = category;
   const res = await client.get("/api/tweets", { params });
-  return res.data;
+  const data = res.data;
+  return { ...data, tweets: dedupeTweets(data.tweets || []) };
 }
 
 export default client;

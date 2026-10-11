@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
-import TopBar from "../components/TopBar";
-import TweetCard from "../components/TweetCard";
-import { ArrowLeftIcon, ICONS_BY_KEY_MAP } from "../components/Icons";
+import Masthead from "../components/Masthead";
+import Footer from "../components/Footer";
+import SignalRow from "../components/SignalRow";
 import { getCategoryMeta, CATEGORIES, fetchTweets, fetchStats } from "../api";
+
+const PAGE_SIZE = 15;
 
 export default function CategoryPage() {
   const { categoryKey } = useParams();
@@ -16,16 +18,15 @@ export default function CategoryPage() {
   const [sort, setSort] = useState("score"); // "score" | "recent"
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastScrape, setLastScrape] = useState(null);
+  const [stats, setStats] = useState(null);
 
   const category = getCategoryMeta(categoryKey);
-  const Icon = ICONS_BY_KEY_MAP()[category.icon];
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const [tweetsData, statsData] = await Promise.all([
-        fetchTweets({ category: categoryKey, page, limit: 15 }),
+        fetchTweets({ category: categoryKey, page, limit: PAGE_SIZE, sort }),
         fetchStats(),
       ]);
       let list = tweetsData.tweets || [];
@@ -35,10 +36,10 @@ export default function CategoryPage() {
       setTweets(list);
       setTotal(tweetsData.total);
       setTotalPages(tweetsData.total_pages || 1);
-      setLastScrape(statsData.last_scrape);
+      setStats(statsData);
       setError(null);
     } catch (e) {
-      setError("Couldn't load signals right now. The server may be waking up — please refresh in a moment.");
+      setError("Couldn't load signals right now. The server may be waking up — refresh in a moment.");
     } finally {
       setLoading(false);
     }
@@ -46,110 +47,98 @@ export default function CategoryPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [categoryKey]);
+  }, [categoryKey, sort]);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [page]);
+
   if (!isValid) return <Navigate to="/" replace />;
 
   return (
     <div className="page">
-      <TopBar lastScrape={lastScrape} />
+      <Masthead lastScrape={stats?.last_scrape} total={stats?.total_relevant_leads ?? 0} />
 
-      <main className="cat-main">
-        <Link to="/" className="back-link">
-          <ArrowLeftIcon />
-          All channels
-        </Link>
+      <Link to="/" className="crumb">← All channels</Link>
 
-        <div className={`cat-header cat-header--${category.accent}`}>
-          <div className="cat-header-icon">
-            <Icon />
-          </div>
-          <div>
-            <h1 className="cat-header-title">{category.label}</h1>
-            <p className="cat-header-desc">{category.description}</p>
-          </div>
-          <div className="cat-header-count">
-            <span className="cat-header-count-num">{total}</span>
-            <span className="cat-header-count-label">signal{total === 1 ? "" : "s"}</span>
-          </div>
+      <header className="cat-head">
+        <div>
+          <p className="cat-kicker">Channel</p>
+          <h1 className="cat-title">{category.label}</h1>
+          <p className="cat-desc">{category.description}</p>
         </div>
-
-        <div className="cat-toolbar">
-          <div className="sort-toggle">
-            <button
-              className={sort === "score" ? "sort-btn sort-btn--active" : "sort-btn"}
-              onClick={() => setSort("score")}
-            >
-              Highest score
-            </button>
-            <button
-              className={sort === "recent" ? "sort-btn sort-btn--active" : "sort-btn"}
-              onClick={() => setSort("recent")}
-            >
-              Most recent
-            </button>
-          </div>
+        <div className="cat-count">
+          <span className="cat-count-num">{total.toLocaleString("en-IN")}</span>
+          <span className="cat-count-label">signal{total === 1 ? "" : "s"}</span>
         </div>
+      </header>
 
-        {error && (
-          <div className="empty-state empty-state--error">
-            <p>{error}</p>
-          </div>
-        )}
+      <div className="toolbar">
+        <span>Sort</span>
+        <button
+          className={sort === "score" ? "sort-btn sort-btn--active" : "sort-btn"}
+          onClick={() => setSort("score")}
+        >
+          Highest score
+        </button>
+        <button
+          className={sort === "recent" ? "sort-btn sort-btn--active" : "sort-btn"}
+          onClick={() => setSort("recent")}
+        >
+          Most recent
+        </button>
+      </div>
 
-        {!error && loading && (
-          <div className="tweet-list">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="tweet-card tweet-card--skeleton" />
-            ))}
-          </div>
-        )}
+      {error && (
+        <div className="notice">
+          <p>{error}</p>
+        </div>
+      )}
 
-        {!error && !loading && tweets.length === 0 && (
-          <div className="empty-state">
-            <p className="empty-state-title">No {category.label.toLowerCase()} signals yet</p>
-            <p className="empty-state-sub">
-              Wavelength scans every 30 minutes — check back shortly, or explore another channel.
-            </p>
-          </div>
-        )}
+      {!error && loading && [...Array(4)].map((_, i) => <div key={i} className="signal--skeleton" />)}
 
-        {!error && !loading && tweets.length > 0 && (
-          <>
-            <div className="tweet-list">
-              {tweets.map((t) => (
-                <TweetCard key={t.id} tweet={t} accent={category.accent} />
-              ))}
-            </div>
+      {!error && !loading && tweets.length === 0 && (
+        <div className="notice">
+          <p className="notice-title">No {category.label.toLowerCase()} signals yet</p>
+          <p>Wavelength scans every 30 minutes — check back shortly, or open another channel.</p>
+        </div>
+      )}
 
-            {totalPages > 1 && (
-              <div className="pagination">
-                <button
-                  className="page-btn"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  ← Prev
-                </button>
-                <span className="page-info">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  className="page-btn"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  Next →
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </main>
+      {!error && !loading && tweets.length > 0 && (
+        <>
+          {tweets.map((t) => (
+            <SignalRow key={t.id} tweet={t} />
+          ))}
+
+          {totalPages > 1 && (
+            <nav className="pagination">
+              <button
+                className="page-btn"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                ← Previous
+              </button>
+              <span className="page-info">
+                page {page} / {totalPages}
+              </span>
+              <button
+                className="page-btn"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Next →
+              </button>
+            </nav>
+          )}
+        </>
+      )}
+
+      <Footer />
     </div>
   );
 }
